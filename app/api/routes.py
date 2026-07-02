@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException
 
-from app.models.request_models import PromptRequest,YoutubeRequest
-from app.services.groq_services import GroqService
-from app.services.youtube_service import YouTubeService
-from app.services.summarization_service import SummarizationService
+from models.request_models import PromptRequest,YoutubeRequest
+from services.groq_services import GroqService
+from services.transcript_service import TranscriptService
+from services.summarization_service import SummarizationService
 
 
-from app.exceptions import (
+from exceptions import (
     GroqException,
     InvalidYouTubeUrlException,
     TranscriptNotFoundException,
@@ -15,7 +15,7 @@ from app.exceptions import (
 router = APIRouter()
 
 
-youtube_service = YouTubeService()
+youtube_service = TranscriptService()
 groq_service = GroqService()
 summarization_service = SummarizationService()
 
@@ -80,13 +80,9 @@ def transcript(request: YoutubeRequest):
 def summarize(request: YoutubeRequest):
 
     try:
-        response = summarization_service.summarize(
-            str(request.youtube_url)
-        )
-
-        return {
-            "response": response
-        }
+        return summarization_service.summarize(
+        str(request.youtube_url)
+)
 
     except InvalidYouTubeUrlException as e:
         raise HTTPException(

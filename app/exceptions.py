@@ -14,3 +14,14 @@ class TranscriptNotFoundException(YouTubeException):
 class GroqException(Exception):
     """Base exception for Groq related errors."""
     pass
+
+class AudioDownloadException(Exception):
+    pass
+
+
+class TranscriptionException(Exception):
+    pass
+
+
+class DiarizationException(Exception):
+    pass

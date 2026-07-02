@@ -1,18 +1,34 @@
-from app.services.youtube_service import YouTubeService
-from app.services.groq_services import GroqService
-from app.prompts import summarization_prompt
+import json
+
+from models.request_models import SummaryResponse
+from prompts import summarization_prompt
+from services.groq_services import GroqService
+from services.transcript_service import TranscriptService
+from exceptions import GroqException
+
 
 class SummarizationService:
 
     def __init__(self):
-        self.youtube_service = YouTubeService()
+        self.transcript_service = TranscriptService()
         self.groq_service = GroqService()
 
-    def summarize(self, youtube_url: str):
+    def summarize(self, youtube_url: str) -> SummaryResponse:
 
-        transcript = self.youtube_service.get_transcript(youtube_url)
+        transcript = self.transcript_service.get_transcript(youtube_url)
 
         prompt = summarization_prompt(transcript)
 
-        return self.groq_service.generate(prompt)
-     
+        response = self.groq_service.generate(prompt)
+         
+        print(response)
+        try:
+
+            summary = json.loads(response)
+            return SummaryResponse(**summary)
+
+        except Exception as e:
+            print(e)
+            raise GroqException(
+                "Failed to parse summary response."
+            ) from e

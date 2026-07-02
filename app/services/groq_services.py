@@ -1,7 +1,7 @@
 from groq import Groq
 
-from app.config import GROQ_API_KEY
-from app.exceptions import GroqException
+from config import GROQ_API_KEY
+from exceptions import GroqException
 
 
 class GroqService:
