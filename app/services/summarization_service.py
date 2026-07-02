@@ -1,4 +1,5 @@
 import json
+import re
 
 from models.request_models import SummaryResponse
 from prompts import summarization_prompt
@@ -20,15 +21,24 @@ class SummarizationService:
         prompt = summarization_prompt(transcript)
 
         response = self.groq_service.generate(prompt)
-         
-        print(response)
+
+        print("Raw LLM Response:\n", response)
+
         try:
 
-            summary = json.loads(response)
+            match = re.search(r"\{.*\}", response, re.DOTALL)
+
+            if not match:
+                raise ValueError("No JSON object found in LLM response.")
+
+            summary = json.loads(match.group())
+
             return SummaryResponse(**summary)
 
         except Exception as e:
-            print(e)
+
+            print("Failed to parse response:", e)
+
             raise GroqException(
                 "Failed to parse summary response."
             ) from e

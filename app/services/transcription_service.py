@@ -5,13 +5,13 @@ import httpx
 
 
 from exceptions import TranscriptionException
-
+from config import WHISPER_SERVICE_URL
 
 class TranscriptionService:
 
     def __init__(self):
 
-        self.endpoint = "http://localhost:2000/transcribe"
+        self.endpoint = f"{WHISPER_SERVICE_URL}/transcribe"
 
     def transcribe(
         self,
