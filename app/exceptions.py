@@ -32,3 +32,7 @@ class VideoDownloadException(Exception):
 
 class VideoProcessingException(Exception):
     pass
+
+class OCRException(Exception):
+
+    pass

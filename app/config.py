@@ -41,6 +41,11 @@ VIDEO_PROCESSING_SERVICE_URL = os.getenv(
     "http://localhost:3000",
 )
 
+OCR_SERVICE_URL = os.getenv(
+    "OCR_SERVICE_URL",
+    "http://localhost:4000",
+)
+
 DOWNLOAD_DIR = resolve_path(
     "DOWNLOAD_DIR",
     "downloads",
