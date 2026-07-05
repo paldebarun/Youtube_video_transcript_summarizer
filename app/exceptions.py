@@ -25,3 +25,10 @@ class TranscriptionException(Exception):
 
 class DiarizationException(Exception):
     pass
+
+class VideoDownloadException(Exception):
+    pass
+
+
+class VideoProcessingException(Exception):
+    pass

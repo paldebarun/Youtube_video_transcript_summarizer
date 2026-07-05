@@ -1,4 +1,5 @@
 from urllib.parse import parse_qs, urlparse
+from pathlib import Path
 
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import (
@@ -8,25 +9,51 @@ from youtube_transcript_api._errors import (
 )
 
 from exceptions import (
-    AudioDownloadException,
     InvalidYouTubeUrlException,
     TranscriptNotFoundException,
     TranscriptionException,
+    VideoDownloadException,
+    VideoProcessingException,
 )
-from services.audio_service import AudioService
-from services.diarization_service import DiarizationService
-from services.transcription_service import TranscriptionService
+
+from services.youtube_download_service import (
+    YouTubeDownloadService,
+)
+from services.video_processing_service import (
+    VideoProcessingService,
+)
+from services.transcription_service import (
+    TranscriptionService,
+)
+from services.diarization_service import (
+    DiarizationService,
+)
 
 
 class TranscriptService:
 
     def __init__(self):
 
-        self.audio_service = AudioService()
-        self.transcription_service = TranscriptionService()
-        self.diarization_service = DiarizationService()
+        self.youtube_download_service = (
+            YouTubeDownloadService()
+        )
 
-    def extract_video_id(self, url: str) -> str:
+        self.video_processing_service = (
+            VideoProcessingService()
+        )
+
+        self.transcription_service = (
+            TranscriptionService()
+        )
+
+        self.diarization_service = (
+            DiarizationService()
+        )
+
+    def extract_video_id(
+        self,
+        url: str,
+    ) -> str:
 
         parsed = urlparse(url)
 
@@ -38,16 +65,27 @@ class TranscriptService:
             "www.youtube.com",
             "m.youtube.com",
         ):
-            video_id = parse_qs(parsed.query).get("v", [None])[0]
+
+            video_id = parse_qs(
+                parsed.query
+            ).get(
+                "v",
+                [None],
+            )[0]
 
             if video_id:
                 return video_id
 
-        raise InvalidYouTubeUrlException("Invalid YouTube URL.")
+        raise InvalidYouTubeUrlException(
+            "Invalid YouTube URL."
+        )
 
-    def get_transcript(self, url: str) -> str:
+    def get_transcript(
+        self,
+        url: str,
+    ) -> str:
 
-        audio_path = None
+        video_path: Path | None = None
 
         try:
 
@@ -70,28 +108,51 @@ class TranscriptService:
 
             try:
 
-                audio_path = self.audio_service.download_audio(url)
-
-                transcript = self.transcription_service.transcribe(
-                    audio_path
+                video_path = (
+                    self.youtube_download_service.download(
+                        url
+                    )
                 )
-
+                print(f"Downloaded video to: {video_path}")
+                processing_response = (
+                    self.video_processing_service.process(
+                        video_path
+                    )
+                )
+                print(f"Video processing response: {processing_response}")
+                audio_path = processing_response[
+                    "audio_path"
+                ]
+                print(f"Extracted audio path: {audio_path}")
+                transcript = (
+                    self.transcription_service.transcribe(
+                        audio_path
+                    )
+                )
+                print(f"Generated transcript: {transcript}")
                 # Future:
-                # speaker_segments = self.diarization_service.diarize(audio_path)
-                # transcript = merge_transcript(transcript, speaker_segments)
+                # speaker_segments = (
+                #     self.diarization_service.diarize(
+                #         audio_path
+                #     )
+                # )
 
                 return transcript
 
             except (
-                AudioDownloadException,
+                VideoDownloadException,
+                VideoProcessingException,
                 TranscriptionException,
             ) as e:
-
+                print(f"this is the error : {e}")
                 raise TranscriptNotFoundException(
                     "Unable to generate transcript for this video."
                 ) from e
 
             finally:
 
-                if audio_path:
-                    self.audio_service.delete_audio(audio_path)
+                if (
+                    video_path
+                    and video_path.exists()
+                ):
+                    video_path.unlink()

@@ -13,3 +13,4 @@ class SummaryResponse(BaseModel):
     title: str
     summary: str
     key_points: list[str]
+
