@@ -17,6 +17,9 @@ from services.transcript_service import (
 from services.ocr_service import (
     OCRService,
 )
+from services.vision_service import (
+    VisionService,
+)
 
 from exceptions import (
     TranscriptNotFoundException,
@@ -24,6 +27,7 @@ from exceptions import (
     VideoProcessingException,
     TranscriptionException,
     OCRException,
+    VisionException
 )
 
 
@@ -49,6 +53,9 @@ class VideoPipelineService:
 
         self.ocr_service = (
             OCRService()
+        )
+        self.vision_service = (
+           VisionService()
         )
 
     def process(
@@ -92,11 +99,15 @@ class VideoPipelineService:
 
             ocr = self.ocr_service.extract(scenes)
 
+            vision = self.vision_service.analyze(scenes)
+
+
             return VideoUnderstandingResult(
                 transcript=transcript,
                 metadata=processing_response["metadata"],
                 scenes=scenes,
                 ocr=ocr,
+                vision=vision,
             )
 
         except (
@@ -104,6 +115,7 @@ class VideoPipelineService:
             VideoProcessingException,
             TranscriptionException,
             OCRException,
+            VisionException
         ):
             raise
 

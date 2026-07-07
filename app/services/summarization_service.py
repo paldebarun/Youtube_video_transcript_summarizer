@@ -32,6 +32,7 @@ class SummarizationService:
         prompt = summarization_prompt(transcript=video.transcript,
     ocr=video.ocr,
     metadata=video.metadata,
+    vision=video.vision,
 )
 
         response = self.groq_service.generate(prompt)

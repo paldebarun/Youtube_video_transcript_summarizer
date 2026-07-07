@@ -50,3 +50,8 @@ DOWNLOAD_DIR = resolve_path(
     "DOWNLOAD_DIR",
     "downloads",
 )
+
+VISION_SERVICE_URL = os.getenv(
+    "VISION_SERVICE_URL",
+    "http://localhost:9000",
+)

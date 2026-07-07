@@ -1,4 +1,4 @@
-version: "3.9"
+
 
 services:
 
@@ -18,6 +18,8 @@ services:
       VIDEO_PROCESSING_SERVICE_URL: http://video-processing-service:3000
       OCR_SERVICE_URL: http://ocr-service:4000
       DOWNLOAD_DIR: /shared/uploads
+      VISION_SERVICE_URL: http://vision-service:9000
+
 
     volumes:
       - shared_media:/shared
@@ -26,6 +28,7 @@ services:
       - whisper-service
       - video-processing-service
       - ocr-service
+      - vision-service
 
     restart: unless-stopped
 
@@ -85,7 +88,24 @@ services:
         - shared_media:/shared:ro
 
       restart: unless-stopped
+  vision-service:
+    image: vision_service_image
 
+    container_name: vision_service
+
+    ports:
+      - "9000:9000"
+
+    environment:
+      PORT: 9000
+      OPENROUTER_API_KEY: {OPEN_ROUTER_API_KEY}
+      VISION_MODEL: google/gemma-4-31b-it:free
+      MAX_IMAGES_PER_REQUEST: 3
+
+    volumes:
+      - shared_media:/shared:ro
+
+    restart: unless-stopped
 volumes:
   whisper_cache:
   shared_media:

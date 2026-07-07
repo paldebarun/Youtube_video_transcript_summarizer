@@ -11,3 +11,4 @@ class VideoUnderstandingResult(BaseModel):
     scenes: list[dict]
 
     ocr: dict
+    vision: dict

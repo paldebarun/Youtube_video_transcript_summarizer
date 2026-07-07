@@ -36,3 +36,6 @@ class VideoProcessingException(Exception):
 class OCRException(Exception):
 
     pass
+
+class VisionException(Exception):
+    pass

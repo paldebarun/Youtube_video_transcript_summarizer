@@ -10,6 +10,7 @@ from exceptions import (
     GroqException,
     InvalidYouTubeUrlException,
     TranscriptNotFoundException,
+    VisionException
 )
 
 router = APIRouter()
@@ -69,6 +70,12 @@ def transcript(request: YoutubeRequest):
             status_code=404,
             detail=str(e)
         )
+    
+    except VisionException as e:
+        raise HTTPException(
+            status_code=502,
+            detail=str(e),
+        )
 
     except Exception:
         raise HTTPException(
@@ -94,6 +101,12 @@ def summarize(request: YoutubeRequest):
         raise HTTPException(
             status_code=404,
             detail=str(e)
+        )
+    
+    except VisionException as e:
+        raise HTTPException(
+            status_code=502,
+            detail=str(e),
         )
 
     except GroqException as e:
