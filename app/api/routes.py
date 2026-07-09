@@ -3,8 +3,8 @@ from fastapi import APIRouter, HTTPException
 from models.request_models import PromptRequest,YoutubeRequest
 from services.groq_services import GroqService
 from services.transcript_service import TranscriptService
-from services.summarization_service import SummarizationService
-
+# from services.summarization_service import SummarizationService
+from services.task_service import TaskService
 
 from exceptions import (
     GroqException,
@@ -18,7 +18,9 @@ router = APIRouter()
 
 youtube_service = TranscriptService()
 groq_service = GroqService()
-summarization_service = SummarizationService()
+# summarization_service = SummarizationService()
+task_service = TaskService()
+from models.task_document import ServiceStatus
 
 @router.get("/health")
 def health():
@@ -83,40 +85,62 @@ def transcript(request: YoutubeRequest):
             detail="Internal Server Error"
         )
 
+# @router.post("/summarize")
+# def summarize(request: YoutubeRequest):
+
+#     try:
+#         return summarization_service.summarize(
+#         str(request.youtube_url)
+# )
+
+#     except InvalidYouTubeUrlException as e:
+#         raise HTTPException(
+#             status_code=400,
+#             detail=str(e)
+#         )
+
+#     except TranscriptNotFoundException as e:
+#         raise HTTPException(
+#             status_code=404,
+#             detail=str(e)
+#         )
+    
+#     except VisionException as e:
+#         raise HTTPException(
+#             status_code=502,
+#             detail=str(e),
+#         )
+
+#     except GroqException as e:
+#         raise HTTPException(
+#             status_code=502,
+#             detail=str(e)
+#         )
+
+#     except Exception:
+#         raise HTTPException(
+#             status_code=500,
+#             detail="Internal Server Error"
+#         )
+
 @router.post("/summarize")
 def summarize(request: YoutubeRequest):
 
     try:
-        return summarization_service.summarize(
-        str(request.youtube_url)
-)
 
-    except InvalidYouTubeUrlException as e:
-        raise HTTPException(
-            status_code=400,
-            detail=str(e)
+        task_id = task_service.create_task(
+            str(request.youtube_url)
         )
 
-    except TranscriptNotFoundException as e:
-        raise HTTPException(
-            status_code=404,
-            detail=str(e)
-        )
-    
-    except VisionException as e:
-        raise HTTPException(
-            status_code=502,
-            detail=str(e),
-        )
-
-    except GroqException as e:
-        raise HTTPException(
-            status_code=502,
-            detail=str(e)
-        )
+        return {
+            "task_id": task_id,
+            "status": ServiceStatus.PROCESSING,
+            "message": "Task accepted successfully."
+        }
 
     except Exception:
+
         raise HTTPException(
             status_code=500,
-            detail="Internal Server Error"
+            detail="Failed to create summarization task."
         )

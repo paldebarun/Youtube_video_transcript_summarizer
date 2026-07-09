@@ -1,8 +1,9 @@
-
+version: "3.9"
 
 services:
 
   youtube-summarizer:
+
     build:
       context: .
       dockerfile: Dockerfile
@@ -13,27 +14,92 @@ services:
       - "8000:8000"
 
     environment:
+
       GROQ_API_KEY: ${GROQ_API_KEY}
-      WHISPER_SERVICE_URL: http://whisper-service:2000
+
       VIDEO_PROCESSING_SERVICE_URL: http://video-processing-service:3000
+
+      WHISPER_SERVICE_URL: http://whisper-service:2000
+
       OCR_SERVICE_URL: http://ocr-service:4000
-      DOWNLOAD_DIR: /shared/uploads
+
       VISION_SERVICE_URL: http://vision-service:9000
 
+      REDIS_HOST: redis
 
-    volumes:
-      - shared_media:/shared
+      REDIS_PORT: 6379
+
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      REDIS_DB: 0
+
+      COUCHDB_HOST: couchdb
+
+      COUCHDB_PORT: 5984
+
+      COUCHDB_USERNAME: ${COUCHDB_USERNAME}
+
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+
+      COUCHDB_DATABASE: youtube_tasks
 
     depends_on:
+
+      - redis
+
+      - couchdb
+
       - whisper-service
+
       - video-processing-service
+
       - ocr-service
+
       - vision-service
 
     restart: unless-stopped
 
+  redis:
+
+    image: redis:7-alpine
+
+    container_name: redis
+
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD}
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis_data:/data
+
+    restart: unless-stopped
+
+  couchdb:
+
+    image: couchdb:3
+
+    container_name: couchdb
+
+    ports:
+      - "5984:5984"
+
+    environment:
+
+      COUCHDB_USER: ${COUCHDB_USERNAME}
+
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+
+    restart: unless-stopped
 
   whisper-service:
+
     image: whisper_service_image
 
     container_name: whisper_service
@@ -42,53 +108,70 @@ services:
       - "2000:2000"
 
     environment:
-      WHISPER_MODEL: "small"
-      DEVICE: "cpu"
-      COMPUTE_TYPE: "int8"
-      
+
+      WHISPER_MODEL: small
+
+      DEVICE: cpu
+
+      COMPUTE_TYPE: int8
 
     volumes:
       - whisper_cache:/root/.cache/huggingface
 
-
     restart: unless-stopped
+
   video-processing-service:
+
     image: video_processing_service
+
     container_name: video_processing_service
 
     ports:
       - "3000:3000"
 
     environment:
+
       PORT: 3000
+
       UPLOAD_DIR: /shared/uploads
+
       FRAME_DIR: /shared/frames
+
       AUDIO_DIR: /shared/audio
+
       SCENE_DETECTION_THRESHOLD: 27.0
 
     volumes:
       - shared_media:/shared
 
     restart: unless-stopped
+
   ocr-service:
-      image: ocr_service_image
 
-      container_name: ocr_service
+    image: ocr_service_image
 
-      ports:
-        - "4000:4000"
+    container_name: ocr_service
 
-      environment:
-        PORT: 4000
-        OCR_LANGUAGE: en
-        USE_GPU: "false"
-        MIN_CONFIDENCE: 0.60
+    ports:
+      - "4000:4000"
 
-      volumes:
-        - shared_media:/shared:ro
+    environment:
 
-      restart: unless-stopped
+      PORT: 4000
+
+      OCR_LANGUAGE: en
+
+      USE_GPU: "false"
+
+      MIN_CONFIDENCE: 0.60
+
+    volumes:
+      - shared_media:/shared:ro
+
+    restart: unless-stopped
+
   vision-service:
+
     image: vision_service_image
 
     container_name: vision_service
@@ -97,15 +180,26 @@ services:
       - "9000:9000"
 
     environment:
+
       PORT: 9000
-      OPENROUTER_API_KEY: {OPEN_ROUTER_API_KEY}
+
+      OPENROUTER_API_KEY: ${OPEN_ROUTER_API_KEY}
+
       VISION_MODEL: google/gemma-4-31b-it:free
+
       MAX_IMAGES_PER_REQUEST: 3
 
     volumes:
       - shared_media:/shared:ro
 
     restart: unless-stopped
+
 volumes:
+
+  redis_data:
+
+  couchdb_data:
+
   whisper_cache:
+
   shared_media:
