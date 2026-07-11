@@ -77,7 +77,7 @@ MASTER_QUEUE = "youtube_master_queue"
 
 SUMMARY_QUEUE = "youtube_summary_queue"
 
-REDIS_EVENT_STREAM = "youtube_events"
+EVENT_STREAM = "youtube_events"
 
 EVENT_CONSUMER_GROUP = "workflow_group"
 

@@ -1,8 +1,9 @@
 from messaging.redis_queue import RedisQueue
 from workflow.workflow_orchestrator import WorkflowOrchestrator
-
+from utils.logger import Logger
 from config import MASTER_QUEUE
 
+logger=Logger.get_logger()
 
 class MasterWorker:
 
@@ -24,6 +25,6 @@ class MasterWorker:
 
             task_id = message["task_id"]
 
-            print(f"Received Task: {task_id}")
+            logger.info(f"Received Task: {task_id}")
 
-            self.workflow.start(task_id)
+            self.workflow.handle_task_created(task_id)

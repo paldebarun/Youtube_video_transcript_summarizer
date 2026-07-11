@@ -31,8 +31,8 @@ class TaskService:
 
         task = TaskDocument(
             _id=task_id,
-            status=ServiceStatus.PROCESSING,
-            workflow_stage=WorkflowStage.TASK_CREATED,
+            status=ServiceStatus.QUEUED,
+            workflow_stage=WorkflowStage.QUEUED,
             created_at=datetime.now(timezone.utc),
             input=TaskInput(
                 youtube_url=youtube_url,

@@ -1,12 +1,13 @@
 from messaging.redis_stream import RedisStream
 from workflow.workflow_orchestrator import WorkflowOrchestrator
-
+from utils.logger import Logger
 from config import (
-    REDIS_EVENT_STREAM,
+    EVENT_STREAM,
     EVENT_CONSUMER_GROUP,
     EVENT_CONSUMER_NAME,
 )
 
+logger=Logger.get_logger()
 
 class EventWorker:
 
@@ -17,18 +18,18 @@ class EventWorker:
         self.workflow = WorkflowOrchestrator()
 
         self.stream.create_consumer_group(
-            REDIS_EVENT_STREAM,
+            EVENT_STREAM,
             EVENT_CONSUMER_GROUP,
         )
 
     def start(self):
 
-        print("Event Worker Started...")
+        logger.info("Event Worker Started...")
 
         while True:
 
             events = self.stream.read(
-                REDIS_EVENT_STREAM,
+                EVENT_STREAM,
                 EVENT_CONSUMER_GROUP,
                 EVENT_CONSUMER_NAME,
             )
@@ -43,7 +44,7 @@ class EventWorker:
                     self.workflow.handle_event(event)
 
                     self.stream.acknowledge(
-                        REDIS_EVENT_STREAM,
+                        EVENT_STREAM,
                         EVENT_CONSUMER_GROUP,
                         message_id,
                     )

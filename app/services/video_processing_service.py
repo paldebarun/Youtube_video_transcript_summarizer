@@ -1,9 +1,7 @@
-from pathlib import Path
-
 import httpx
 
 from config import VIDEO_PROCESSING_SERVICE_URL
-from exceptions import VideoProcessingException
+from models.job_model import VideoJob
 
 
 class VideoProcessingService:
@@ -11,36 +9,20 @@ class VideoProcessingService:
     def __init__(self):
 
         self.endpoint = (
-            f"{VIDEO_PROCESSING_SERVICE_URL}/process"
+            f"{VIDEO_PROCESSING_SERVICE_URL}/jobs"
         )
 
-    def process(
+    def submit(
         self,
-        video_path: Path,
-    ) -> dict:
+        job: VideoJob,
+    ):
 
-        try:
+        response = httpx.post(
+            self.endpoint,
+            json=job.model_dump(),
+            timeout=30,
+        )
 
-            with open(video_path, "rb") as video:
+        response.raise_for_status()
 
-                response = httpx.post(
-                    self.endpoint,
-                    files={
-                        "file": (
-                            video_path.name,
-                            video,
-                            "video/mp4",
-                        )
-                    },
-                    timeout=600,
-                )
-
-            response.raise_for_status()
-
-            return response.json()
-
-        except Exception as e:
-
-            raise VideoProcessingException(
-                "Failed to process video."
-            ) from e
+        return None

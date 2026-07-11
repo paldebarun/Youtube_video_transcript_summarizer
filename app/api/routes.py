@@ -126,21 +126,11 @@ def transcript(request: YoutubeRequest):
 @router.post("/summarize")
 def summarize(request: YoutubeRequest):
 
-    try:
+    task = task_service.create_task(
+        str(request.youtube_url)
+    )
 
-        task_id = task_service.create_task(
-            str(request.youtube_url)
-        )
-
-        return {
-            "task_id": task_id,
-            "status": ServiceStatus.PROCESSING,
-            "message": "Task accepted successfully."
-        }
-
-    except Exception:
-
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to create summarization task."
-        )
+    return {
+        "task_id": task.id,
+        "status": "QUEUED",
+    }
