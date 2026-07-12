@@ -4,7 +4,9 @@ from workers.master_worker import MasterWorker
 from workers.event_worker import EventWorker
 from workers.summary_worker import SummaryWorker
 
-from utils.logger import logger
+from utils.logger import Logger
+
+logger = Logger.get_logger()
 
 
 WORKERS = {

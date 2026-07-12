@@ -8,7 +8,9 @@ from config import (
     COUCHDB_DATABASE,
 )
 
-from utils.logger import logger
+from utils.logger import Logger
+
+logger = Logger.get_logger()
 
 
 class CouchDBClient:
