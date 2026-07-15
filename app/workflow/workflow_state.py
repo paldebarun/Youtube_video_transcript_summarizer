@@ -1,8 +1,9 @@
 from enum import Enum
 
+
 class WorkflowStage(str, Enum):
 
-    QUEUED = "QUEUED"
+    TASK_CREATED = "TASK_CREATED"
 
     VIDEO_PROCESSING = "VIDEO_PROCESSING"
 
@@ -20,6 +21,8 @@ class ServiceStatus(str, Enum):
     PENDING = "PENDING"
 
     QUEUED = "QUEUED"
+
+    PROCESSING = "PROCESSING"
 
     COMPLETED = "COMPLETED"
 

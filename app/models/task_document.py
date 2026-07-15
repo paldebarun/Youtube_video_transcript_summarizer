@@ -49,19 +49,31 @@ class TaskDocument(BaseModel):
 
     created_at: datetime
 
+    updated_at: datetime | None = None
+
     completed_at: datetime | None = None
 
     input: TaskInput
 
-    video_processing: ServiceResult = ServiceResult()
+    video_processing: ServiceResult = Field(
+        default_factory=ServiceResult,
+    )
 
-    ocr: ServiceResult = ServiceResult()
+    ocr: ServiceResult = Field(
+        default_factory=ServiceResult,
+    )
 
-    vision: ServiceResult = ServiceResult()
+    vision: ServiceResult = Field(
+        default_factory=ServiceResult,
+    )
 
-    whisper: ServiceResult = ServiceResult()
+    whisper: ServiceResult = Field(
+        default_factory=ServiceResult,
+    )
 
-    summary: SummaryResult = SummaryResult()
+    summary: SummaryResult = Field(
+        default_factory=SummaryResult,
+    )
 
     model_config = {
         "populate_by_name": True

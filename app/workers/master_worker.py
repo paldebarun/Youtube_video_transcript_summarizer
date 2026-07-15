@@ -14,13 +14,14 @@ class MasterWorker:
 
     def start(self):
 
-        print("Master Worker Started...")
+        logger.debug("Master Worker Started...")
 
         while True:
 
             message = self.queue.pop(MASTER_QUEUE)
 
             if message is None:
+                logger.debug("No message received.")
                 continue
 
             task_id = message["task_id"]

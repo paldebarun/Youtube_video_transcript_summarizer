@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from clients.couchdb_client import CouchDBClient
 
@@ -104,7 +104,7 @@ class TaskRepository:
 
         if status == ServiceStatus.PROCESSING:
 
-            service.started_at = datetime.utcnow()
+            service.started_at = datetime.now(UTC)
 
         elif status in (
             ServiceStatus.COMPLETED,
@@ -116,26 +116,28 @@ class TaskRepository:
         self.update_task(task)
 
     def update_service_result(
-        self,
-        task_id: str,
-        service_name: str,
-        result,
-    ):
+            self,
+            task_id: str,
+            service_name: str,
+            result,
+        ):
 
-        task = self.get_task(task_id)
+            task = self.get_task(task_id)
 
-        service = getattr(
-            task,
-            service_name,
-        )
+            service = getattr(
+                task,
+                service_name,
+            )
 
-        service.result = result
+            service.status = ServiceStatus.COMPLETED
 
-        service.status = ServiceStatus.COMPLETED
+            service.completed_at = datetime.now(UTC)
 
-        service.completed_at = datetime.utcnow()
+            service.error = None
 
-        self.update_task(task)
+            service.result = result
+
+            self.update_task(task)
 
     def update_summary(
         self,
@@ -147,7 +149,7 @@ class TaskRepository:
 
         task.summary.status = ServiceStatus.COMPLETED
 
-        task.summary.completed_at = datetime.utcnow()
+        task.summary.completed_at = datetime.now(UTC)
 
         task.summary.result = summary
 
@@ -155,7 +157,7 @@ class TaskRepository:
 
         task.status = ServiceStatus.COMPLETED
 
-        task.completed_at = datetime.utcnow()
+        task.completed_at = datetime.now(UTC)
 
         self.update_task(task)
 

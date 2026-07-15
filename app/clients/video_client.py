@@ -1,10 +1,11 @@
-import httpx
-
 from config import VIDEO_PROCESSING_SERVICE_URL
+
 from models.job_model import VideoJob
 
+from .external_service_base_client import BaseClient
 
-class VideoProcessingService:
+
+class VideoClient(BaseClient):
 
     def __init__(self):
 
@@ -17,12 +18,7 @@ class VideoProcessingService:
         job: VideoJob,
     ):
 
-        response = httpx.post(
+        return self.post(
             self.endpoint,
-            json=job.model_dump(),
-            timeout=30,
+            job.model_dump(),
         )
-
-        response.raise_for_status()
-
-        return None

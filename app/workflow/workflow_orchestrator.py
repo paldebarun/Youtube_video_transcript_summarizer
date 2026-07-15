@@ -1,89 +1,351 @@
-from models.job_model import VideoJob
+from models.event_model import WorkflowEvent
+from models.job_model import (
+    VideoJob,
+    OCRJob,
+    VisionJob,
+    WhisperJob,
+)
 
+from models.task_document import ServiceType
+
+from workflow.workflow_state import WorkflowStage
+
+from services.task_service import TaskService
 from services.youtube_download_service import (
     YouTubeDownloadService,
 )
 
-from services.video_processing_service import (
-    VideoProcessingService,
-)
+from models.job_model import SummaryJob
 
-from repo.task_repository import TaskRepository
+from clients.video_client import VideoClient
+from clients.ocr_client import OCRClient
+from clients.vision_client import VisionClient
+from clients.whisper_client import WhisperClient
 
-from .workflow_state import WorkflowStage
+from messaging.redis_queue import RedisQueue
+
+from config import SUMMARY_QUEUE
+
+from utils.logger import Logger
+
+logger = Logger.get_logger()
 
 
 class WorkflowOrchestrator:
 
     def __init__(self):
 
-        self.repository = TaskRepository()
+        self.task_service = TaskService()
 
-        self.downloader = (
-            YouTubeDownloadService()
-        )
+        self.downloader = YouTubeDownloadService()
 
-        self.video_service = (
-            VideoProcessingService()
-        )
+        self.video_client = VideoClient()
+        self.ocr_client = OCRClient()
+        self.vision_client = VisionClient()
+        self.whisper_client = WhisperClient()
+
+        self.summary_queue = RedisQueue()
 
     def handle_task_created(
         self,
         task_id: str,
     ):
 
-        task = self.repository.get_task(task_id)
-
-        video_path = self.downloader.download(
-            task.input.youtube_url
+        task = self.task_service.get_task(
+            task_id,
         )
 
-        job = VideoJob(
-            task_id=task.id,
-            video_path=str(video_path),
-        )
+        try:
 
-        self.video_service.submit(job)
-        self.repository.update_stage(
-            task.id,
-            WorkflowStage.VIDEO_PROCESSING,
-        )
+            logger.info(
+                f"Downloading video for task: {task_id}"
+            )
 
+            video_path = self.downloader.download(
+                task.input.youtube_url,
+            )
+
+            self.task_service.mark_service_queued(
+                task.id,
+                ServiceType.VIDEO_PROCESSING,
+            )
+
+            self.task_service.mark_workflow_stage(
+                task.id,
+                WorkflowStage.VIDEO_PROCESSING,
+            )
+
+            job = VideoJob(
+                task_id=task.id,
+                video_path=str(video_path),
+            )
+
+            self.video_client.submit(job)
+
+            logger.info(
+                f"Video job submitted: {task.id}"
+            )
+
+        except Exception as e:
+
+            logger.error(
+                f"Failed to create workflow for {task_id}: {e}"
+            )
+
+            self.task_service.mark_service_failed(
+                task.id,
+                ServiceType.VIDEO_PROCESSING,
+                str(e),
+            )
+
+            self.task_service.mark_workflow_stage(
+                task.id,
+                WorkflowStage.FAILED,
+            )
+
+            raise
 
     def handle_event(
-        self,
-        event,
-    ):
+            self,
+            event: WorkflowEvent,
+        ):
 
-        if event.event_type == "video.completed":
+            handlers = {
 
-            self.handle_video_completed(event)
+                "video.completed": self.handle_video_completed,
+                "video.failed": self.handle_video_failed,
 
-        elif event.event_type == "video.failed":
+                "ocr.completed": self.handle_ocr_completed,
+                "ocr.failed": self.handle_ocr_failed,
 
-            self.handle_video_failed(event)
+                "vision.completed": self.handle_vision_completed,
+                "vision.failed": self.handle_vision_failed,
+
+                "whisper.completed": self.handle_whisper_completed,
+                "whisper.failed": self.handle_whisper_failed,
+            }
+
+            handler = handlers.get(event.event_type)
+
+            if handler is None:
+
+                logger.warning(
+                    f"Unknown workflow event: {event.event_type}"
+                )
+
+                return
+
+            if event.event_type.endswith(".completed") and event.payload is None:
+
+                raise ValueError(
+                    f"Completed event '{event.event_type}' is missing payload."
+                )
+
+            if event.event_type.endswith(".failed") and event.error is None:
+
+                raise ValueError(
+                    f"Failed event '{event.event_type}' is missing error."
+                )
+
+            handler(event)
+
 
     def handle_video_completed(
         self,
-        event,
+        event: WorkflowEvent,
     ):
 
-        self.repository.update_video_result(
+        try:
+
+            self.task_service.update_service_result(
+                event.task_id,
+                ServiceType.VIDEO_PROCESSING,
+                event.payload,
+            )
+
+            self.task_service.mark_workflow_stage(
+                event.task_id,
+                WorkflowStage.PARALLEL_PROCESSING,
+            )
+
+            payload = event.payload
+
+            logger.info(
+                f"Submitting OCR, Vision and Whisper jobs for {event.task_id}"
+            )
+
+            self.task_service.mark_service_queued(
+                event.task_id,
+                ServiceType.OCR,
+            )
+
+            self.ocr_client.submit(
+                OCRJob(
+                    task_id=event.task_id,
+                    frames=payload["scenes"],
+                )
+            )
+
+            self.task_service.mark_service_queued(
+                event.task_id,
+                ServiceType.VISION,
+            )
+
+            self.vision_client.submit(
+                VisionJob(
+                    task_id=event.task_id,
+                    frames=payload["scenes"],
+                )
+            )
+
+            self.task_service.mark_service_queued(
+                event.task_id,
+                ServiceType.WHISPER,
+            )
+
+            self.whisper_client.submit(
+                WhisperJob(
+                    task_id=event.task_id,
+                    audio_path=payload["audio_path"],
+                )
+            )
+
+        except Exception as e:
+
+            logger.error(
+                f"Failed to submit downstream jobs for {event.task_id}: {e}"
+            )
+
+            self.task_service.mark_workflow_stage(
+                event.task_id,
+                WorkflowStage.FAILED,
+            )
+
+            raise
+
+
+    def _handle_parallel_completion(
+        self,
+        task_id: str,
+        service: ServiceType,
+        payload,
+    ):
+
+        self.task_service.update_service_result(
+            task_id,
+            service,
+            payload,
+        )
+
+        task = self.task_service.get_task(
+            task_id,
+        )
+
+        if self.task_service.all_services_completed(
+            task,
+        ):
+
+            logger.info(
+                f"Submitting Summary job for {task_id}"
+            )
+
+            self.task_service.mark_service_queued(
+                task_id,
+                ServiceType.SUMMARY,
+            )
+
+            self.task_service.mark_workflow_stage(
+                task_id,
+                WorkflowStage.SUMMARY_PROCESSING,
+            )
+
+            job = SummaryJob(
+                task_id=task_id,
+            )
+
+            self.summary_queue.push(
+                SUMMARY_QUEUE,
+                job.model_dump(),
+            )
+
+
+
+    def handle_ocr_completed(
+        self,
+        event: WorkflowEvent,
+    ):
+
+        self._handle_parallel_completion(
             event.task_id,
+            ServiceType.OCR,
             event.payload,
         )
 
-        # TODO
-        # submit OCR
-        # submit Vision
-        # submit Whisper
 
-    def handle_video_failed(
+    def handle_vision_completed(
         self,
-        event,
+        event: WorkflowEvent,
     ):
 
-        self.repository.mark_failed(
+        self._handle_parallel_completion(
             event.task_id,
-            event.error,
+            ServiceType.VISION,
+            event.payload,
+        )
+
+    
+    def handle_whisper_completed(
+        self,
+        event: WorkflowEvent,
+    ):
+
+        self._handle_parallel_completion(
+            event.task_id,
+            ServiceType.WHISPER,
+            event.payload,
+        )
+
+    def _handle_failure(
+        self,
+        event: WorkflowEvent,
+        service: ServiceType,
+    ):
+
+        logger.error(
+            f"{event.event_type} | Task: {event.task_id} | Error: {event.error}"
+        )
+
+        self.task_service.mark_service_failed(
+            event.task_id,
+            service,
+            event.error or "Unknown error",
+        )
+
+        self.task_service.mark_workflow_stage(
+            event.task_id,
+            WorkflowStage.FAILED,
+        )
+
+    def handle_video_failed(self, event):
+        self._handle_failure(
+            event,
+            ServiceType.VIDEO_PROCESSING,
+        )
+
+    def handle_ocr_failed(self, event):
+        self._handle_failure(
+            event,
+            ServiceType.OCR,
+        )
+
+    def handle_vision_failed(self, event):
+        self._handle_failure(
+            event,
+            ServiceType.VISION,
+        )
+
+    def handle_whisper_failed(self, event):
+        self._handle_failure(
+            event,
+            ServiceType.WHISPER,
         )

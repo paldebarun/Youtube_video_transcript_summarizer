@@ -1,0 +1,296 @@
+
+flowchart LR
+
+%% youtube summarization pipeline 
+
+
+    Client[Client]
+
+    Client -->|POST /summarize| API[YouTube Summarizer API]
+
+    API -->|Generate Task ID| Couch[(CouchDB)]
+
+    API -->|Create Task Document| Couch
+
+    API -->|Push task_id| MasterQueue[(Master Redis Queue)]
+
+    API -->|202 Accepted + task_id| Client
+
+    MasterQueue --> MasterWorker[Master Worker]
+
+    MasterWorker --> Workflow[Workflow Orchestrator]
+
+    Workflow -->|Submit Video Job| VideoService[Video Processing Service]
+
+    EventStream[(Redis Stream)]
+
+    VideoService -->|video.completed + result| EventStream
+    OCRService[OCR Service] -->|ocr.completed + result| EventStream
+    VisionService[Vision Service] -->|vision.completed + result| EventStream
+    WhisperService[Whisper Service] -->|whisper.completed + result| EventStream
+
+    EventStream --> Workflow
+
+    Workflow -->|Update CouchDB| Couch
+
+    Workflow --> Decision{All Services Completed?}
+
+    Decision -->|No| Wait[Wait For Next Event]
+
+    Decision -->|Yes| SummaryQueue[(Summary Redis Queue)]
+
+    SummaryQueue --> SummaryWorker[Summary Worker]
+
+    SummaryWorker -->|Read Task| Couch
+
+    SummaryWorker --> LLM[LLM]
+
+    LLM -->|Update Summary| Couch
+
+    SummaryWorker --> Notification[Notification Service]
+
+    Client -->|GET /tasks/:task_id| API
+
+    API --> Couch
+
+%% master worker lld 
+
+
+    Queue[(Master Redis Queue)]
+
+    Queue --> Worker[Master Worker]
+
+    Worker --> Read[Read Task Document]
+
+    Read --> Start[Start Workflow]
+
+    Start --> Workflow[Workflow Orchestrator]
+
+
+%% work flow orchestrator lld 
+
+
+    Event[Receive Redis Stream Event]
+
+    Event --> Update[Update CouchDB Result]
+
+    Update --> Stage{Workflow Stage}
+
+    Stage -->|Task Created| Video[Submit Video Processing]
+
+    Video --> End1[Done]
+
+    Stage -->|video.completed| Parallel[Submit OCR Vision Whisper]
+
+    Parallel --> End2[Done]
+
+    Stage -->|ocr/vision/whisper.completed| Check{All Parallel Jobs Complete?}
+
+    Check -->|No| End3[Wait]
+
+    Check -->|Yes| Summary[Push task_id to Summary Queue]
+
+    Summary --> End4[Done]
+
+
+%% ocr service 
+
+
+
+    Request --> API
+
+    API --> Queue[(Redis Queue)]
+
+    Queue --> Worker
+
+    Worker --> OCR[OCR Engine]
+
+    OCR --> Event[Publish ocr.completed]
+
+    Event --> Stream[(Redis Stream)]
+
+
+
+%% vision service
+
+
+    Request --> API
+
+    API --> Queue[(Redis Queue)]
+
+    Queue --> Worker
+
+    Worker --> Batch[Create Image Batches]
+
+    Batch --> OpenRouter[OpenRouter]
+
+    OpenRouter --> Merge[Merge Responses]
+
+    Merge --> Event[Publish vision.completed]
+
+    Event --> Stream[(Redis Stream)]
+
+
+%% whisper service
+
+
+    Request --> API
+
+    API --> Queue[(Redis Queue)]
+
+    Queue --> Worker
+
+    Worker --> Whisper[Speech To Text]
+
+    Whisper --> Event[Publish whisper.completed]
+
+    Event --> Stream[(Redis Stream)]
+
+
+
+%% Video Processing
+
+
+
+    Request --> API
+
+    API --> Queue[(Redis Queue)]
+
+    Queue --> Worker
+
+    Worker --> Download[Download Video]
+
+    Download --> Scene[Scene Detection]
+
+    Scene --> Frames[Extract Frames]
+
+    Frames --> Audio[Extract Audio]
+
+    Audio --> Metadata[Generate Metadata]
+
+    Metadata --> Event[Publish video.completed]
+
+    Event --> Stream[(Redis Stream)]
+
+
+%% summary worker lld
+
+
+
+    Queue[(Summary Redis Queue)]
+
+    Queue --> Worker[Summary Worker]
+
+    Worker --> Read[Read CouchDB]
+
+    Read --> Prompt[Build Prompt]
+
+    Prompt --> LLM[Generate Summary]
+
+    LLM --> Update[Update CouchDB]
+
+    Update --> Notify[summary.completed]
+
+    Notify --> Notification[Notification Service]
+
+
+%% event flow lld
+
+sequenceDiagram
+
+    participant Client
+    participant API
+    participant CouchDB
+    participant MW as Master Worker
+    participant WO as Workflow Orchestrator
+    participant VP as Video Processing
+    participant OCR
+    participant Vision
+    participant Whisper
+    participant Stream as Redis Stream
+    participant SW as Summary Worker
+
+    Client->>API: POST /summarize
+
+    API->>CouchDB: Create Task
+
+    API->>MW: Push task_id
+
+    MW->>WO: Start Workflow
+
+    WO->>VP: Submit Video
+
+    VP->>Stream: video.completed + result
+
+    Stream->>WO: Event
+
+    WO->>CouchDB: Update Video Result
+
+    WO->>OCR: Submit OCR
+
+    WO->>Vision: Submit Vision
+
+    WO->>Whisper: Submit Whisper
+
+    OCR->>Stream: ocr.completed + result
+
+    Vision->>Stream: vision.completed + result
+
+    Whisper->>Stream: whisper.completed + result
+
+    Stream->>WO: Events (Sequential)
+
+    WO->>CouchDB: Update Results
+
+    WO->>SW: Push Summary Job
+
+    SW->>CouchDB: Read Task
+
+    SW->>SW: Generate Summary
+
+    SW->>CouchDB: Store Summary
+
+
+%% couch db final structure :
+
+{
+    "_id": "task_id",
+
+    "status": "PROCESSING",
+
+    "workflow_stage": "PARALLEL_PROCESSING",
+
+    "created_at": "...",
+
+    "completed_at": null,
+
+    "input": {
+        "youtube_url": "..."
+    },
+
+    "video_processing": {
+        "status": "COMPLETED",
+        "result": {}
+    },
+
+    "ocr": {
+        "status": "COMPLETED",
+        "result": {}
+    },
+
+    "vision": {
+        "status": "COMPLETED",
+        "result": {}
+    },
+
+    "whisper": {
+        "status": "COMPLETED",
+        "result": {}
+    },
+
+    "summary": {
+        "status": "PROCESSING",
+        "result": null
+    }
+}
+

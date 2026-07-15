@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
-
+from workers.master_worker import MasterWorker
+from workers.event_worker import EventWorker
+from workers.summary_worker import SummaryWorker
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -98,3 +100,14 @@ COUCHDB_DATABASE = os.getenv(
     "COUCHDB_DATABASE",
     "youtube_tasks",
 )
+
+GROQ_MODEL = os.getenv(
+    "GROQ_MODEL",
+    "llama-3.3-70b-versatile",
+)
+
+WORKERS = {
+    "master": MasterWorker,
+    "event": EventWorker,
+    "summary": SummaryWorker,
+}

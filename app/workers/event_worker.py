@@ -1,13 +1,19 @@
+from models.event_model import WorkflowEvent
+
 from messaging.redis_stream import RedisStream
+
 from workflow.workflow_orchestrator import WorkflowOrchestrator
-from utils.logger import Logger
+
 from config import (
     EVENT_STREAM,
     EVENT_CONSUMER_GROUP,
     EVENT_CONSUMER_NAME,
 )
 
-logger=Logger.get_logger()
+from utils.logger import Logger
+
+logger = Logger.get_logger()
+
 
 class EventWorker:
 
@@ -24,7 +30,9 @@ class EventWorker:
 
     def start(self):
 
-        logger.info("Event Worker Started...")
+        logger.info(
+            "Event Worker Started."
+        )
 
         while True:
 
@@ -35,16 +43,31 @@ class EventWorker:
             )
 
             if not events:
+
                 continue
 
             for _, messages in events:
 
-                for message_id, event in messages:
+                for message_id, event_data in messages:
 
-                    self.workflow.handle_event(event)
+                    try:
 
-                    self.stream.acknowledge(
-                        EVENT_STREAM,
-                        EVENT_CONSUMER_GROUP,
-                        message_id,
-                    )
+                        event = WorkflowEvent(
+                            **event_data,
+                        )
+
+                        self.workflow.handle_event(
+                            event,
+                        )
+
+                        self.stream.acknowledge(
+                            EVENT_STREAM,
+                            EVENT_CONSUMER_GROUP,
+                            message_id,
+                        )
+
+                    except Exception as e:
+
+                        logger.error(
+                            f"Failed processing event {message_id}: {e}"
+                        )
