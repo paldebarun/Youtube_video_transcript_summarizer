@@ -14,7 +14,7 @@ services:
       - "8000:8000"
 
     environment:
-
+      PORT: ${PORT}
       GROQ_API_KEY: ${GROQ_API_KEY}
 
       VIDEO_PROCESSING_SERVICE_URL: http://video-processing-service:3000
@@ -42,6 +42,16 @@ services:
       COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
 
       COUCHDB_DATABASE: youtube_tasks
+
+      MASTER_QUEUE: youtube_master_queue
+
+      SUMMARY_QUEUE: youtube_summary_queue
+
+      EVENT_STREAM: workflow_events
+
+      EVENT_CONSUMER_GROUP: workflow_group
+
+      EVENT_CONSUMER_NAME: workflow_consumer
 
     depends_on:
 
@@ -115,6 +125,23 @@ services:
 
       COMPUTE_TYPE: int8
 
+      REDIS_HOST: redis
+
+      REDIS_PORT: 6379
+
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      REDIS_DB: 0
+
+      WHISPER_QUEUE: whisper_queue
+
+      EVENT_STREAM: workflow_events
+
+      EVENT_CONSUMER_GROUP: workflow_group
+
+      EVENT_CONSUMER_NAME: whisper_service
+
+
     volumes:
       - whisper_cache:/root/.cache/huggingface
 
@@ -141,6 +168,19 @@ services:
 
       SCENE_DETECTION_THRESHOLD: 27.0
 
+      REDIS_HOST: redis
+
+      REDIS_PORT: 6379
+
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      REDIS_DB: 0
+
+      VIDEO_QUEUE: video_queue
+
+      EVENT_STREAM: workflow_events
+
+
     volumes:
       - shared_media:/shared
 
@@ -165,6 +205,23 @@ services:
 
       MIN_CONFIDENCE: 0.60
 
+      REDIS_HOST: redis
+
+      REDIS_PORT: 6379
+
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      REDIS_DB: 0
+
+      OCR_QUEUE: ocr_queue
+
+      EVENT_STREAM: workflow_events
+
+      EVENT_CONSUMER_GROUP: workflow_group
+
+      EVENT_CONSUMER_NAME: ocr_service
+
+
     volumes:
       - shared_media:/shared:ro
 
@@ -183,11 +240,30 @@ services:
 
       PORT: 9000
 
-      OPENROUTER_API_KEY: ${OPEN_ROUTER_API_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
 
       VISION_MODEL: google/gemma-4-31b-it:free
 
-      MAX_IMAGES_PER_REQUEST: 3
+      MAX_IMAGES_PER_REQUEST: 5
+
+      REDIS_HOST: redis
+
+      REDIS_PORT: 6379
+
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      REDIS_DB: 0
+
+      VISION_QUEUE: vision_queue
+
+      EVENT_STREAM: workflow_events
+
+      EVENT_CONSUMER_GROUP: workflow_group
+
+      EVENT_CONSUMER_NAME: vision_service
+
+      OPENROUTER_ENDPOINT_URL: https://openrouter.ai/api/v1/chat/completions
+
 
     volumes:
       - shared_media:/shared:ro

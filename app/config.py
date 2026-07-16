@@ -1,8 +1,6 @@
 from pathlib import Path
 import os
-from workers.master_worker import MasterWorker
-from workers.event_worker import EventWorker
-from workers.summary_worker import SummaryWorker
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -75,15 +73,30 @@ REDIS_PASSWORD = os.getenv(
     "REDIS_PASSWORD",
 )
 
-MASTER_QUEUE = "youtube_master_queue"
+MASTER_QUEUE = os.getenv(
+    "MASTER_QUEUE",
+    "youtube_master_queue",
+)
 
-SUMMARY_QUEUE = "youtube_summary_queue"
+SUMMARY_QUEUE = os.getenv(
+    "SUMMARY_QUEUE",
+    "youtube_summary_queue",
+)
 
-EVENT_STREAM = "youtube_events"
+EVENT_STREAM = os.getenv(
+    "EVENT_STREAM",
+    "workflow_events",
+)
 
-EVENT_CONSUMER_GROUP = "workflow_group"
+EVENT_CONSUMER_GROUP = os.getenv(
+    "EVENT_CONSUMER_GROUP",
+    "workflow_group",
+)
 
-EVENT_CONSUMER_NAME = "workflow_consumer"
+EVENT_CONSUMER_NAME = os.getenv(
+    "EVENT_CONSUMER_NAME",
+    "workflow_consumer",
+)
 
 REDIS_DB = int(os.getenv("REDIS_DB", 0))
 
@@ -106,8 +119,5 @@ GROQ_MODEL = os.getenv(
     "llama-3.3-70b-versatile",
 )
 
-WORKERS = {
-    "master": MasterWorker,
-    "event": EventWorker,
-    "summary": SummaryWorker,
-}
+PORT=int(os.getenv("PORT"))
+

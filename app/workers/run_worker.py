@@ -1,13 +1,19 @@
 import sys
+from workers.master_worker import MasterWorker
+from workers.event_worker import EventWorker
+from workers.summary_worker import SummaryWorker
 
-from config import WORKERS
 
 from utils.logger import Logger
 
 logger = Logger.get_logger()
 
 
-
+WORKERS = {
+    "master": MasterWorker,
+    "event": EventWorker,
+    "summary": SummaryWorker,
+}
 
 def main():
 
