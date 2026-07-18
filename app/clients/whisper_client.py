@@ -1,8 +1,8 @@
-from config import WHISPER_SERVICE_URL
+from app.config import WHISPER_SERVICE_URL
 
-from models.job_model import WhisperJob
+from app.models.job_model import WhisperJob
 
-from .external_service_base_client import BaseClient
+from app.clients.external_service_base_client import BaseClient
 
 
 class WhisperClient(BaseClient):

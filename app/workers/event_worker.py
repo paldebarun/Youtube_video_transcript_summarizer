@@ -1,16 +1,16 @@
-from models.event_model import WorkflowEvent
+from app.models.event_model import WorkflowEvent
 
-from messaging.redis_stream import RedisStream
+from app.messaging.redis_stream import RedisStream
 
-from workflow.workflow_orchestrator import WorkflowOrchestrator
+from app.workflow.workflow_orchestrator import WorkflowOrchestrator
 
-from config import (
+from app.config import (
     EVENT_STREAM,
     EVENT_CONSUMER_GROUP,
     EVENT_CONSUMER_NAME,
 )
 
-from utils.logger import Logger
+from app.utils.logger import Logger
 
 logger = Logger.get_logger()
 

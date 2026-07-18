@@ -3,12 +3,12 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 
-from api.routes import router
+from app.api.routes import router
 
-from config import PORT
+from app.config import PORT
 
-from utils.logger import Logger
-from utils.supervisor_manager import SupervisorManager
+from app.utils.logger import Logger
+from app.utils.supervisor_manager import SupervisorManager
 
 
 logger = Logger.get_logger()
@@ -60,7 +60,7 @@ app.include_router(router)
 if __name__ == "__main__":
 
     uvicorn.run(
-        "main:app",
+        "app.main:app",
         host="0.0.0.0",
         port=PORT,
         reload=True,

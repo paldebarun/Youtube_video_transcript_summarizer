@@ -1,8 +1,8 @@
-from config import VISION_SERVICE_URL
+from app.config import VISION_SERVICE_URL
 
-from models.job_model import VisionJob
+from app.models.job_model import VisionJob
 
-from .external_service_base_client import BaseClient
+from app.clients.external_service_base_client import BaseClient
 
 
 class VisionClient(BaseClient):

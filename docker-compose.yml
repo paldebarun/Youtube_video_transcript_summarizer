@@ -16,6 +16,8 @@ services:
     environment:
       PORT: ${PORT}
       GROQ_API_KEY: ${GROQ_API_KEY}
+      
+      DOWNLOAD_DIR: /shared/uploads
 
       VIDEO_PROCESSING_SERVICE_URL: http://video-processing-service:3000
 
@@ -69,6 +71,9 @@ services:
 
     restart: unless-stopped
 
+    volumes:
+    - shared_media:/shared
+
   redis:
 
     image: redis:7-alpine
@@ -118,6 +123,8 @@ services:
       - "2000:2000"
 
     environment:
+      
+      PYTHONUNBUFFERED: "1"
 
       WHISPER_MODEL: small
 
@@ -158,6 +165,8 @@ services:
 
     environment:
 
+      PYTHONUNBUFFERED: "1"
+
       PORT: 3000
 
       UPLOAD_DIR: /shared/uploads
@@ -196,6 +205,8 @@ services:
       - "4000:4000"
 
     environment:
+
+      PYTHONUNBUFFERED: "1"
 
       PORT: 4000
 
@@ -237,6 +248,8 @@ services:
       - "9000:9000"
 
     environment:
+
+      PYTHONUNBUFFERED: "1"
 
       PORT: 9000
 

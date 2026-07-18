@@ -1,10 +1,10 @@
 from datetime import UTC, datetime
 
-from clients.couchdb_client import CouchDBClient
+from app.clients.couchdb_client import CouchDBClient
 
-from config import COUCHDB_DATABASE
+from app.config import COUCHDB_DATABASE
 
-from models.task_document import (
+from app.models.task_document import (
     TaskDocument,
     WorkflowStage,
     ServiceStatus

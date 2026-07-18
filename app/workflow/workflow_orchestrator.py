@@ -1,32 +1,32 @@
-from models.event_model import WorkflowEvent
-from models.job_model import (
+from app.models.event_model import WorkflowEvent
+from app.models.job_model import (
     VideoJob,
     OCRJob,
     VisionJob,
     WhisperJob,
 )
 
-from models.task_document import ServiceType
+from app.models.task_document import ServiceType
 
-from workflow.workflow_state import WorkflowStage
+from app.workflow.workflow_state import WorkflowStage
 
-from services.task_service import TaskService
-from services.youtube_download_service import (
+from app.services.task_service import TaskService
+from app.services.youtube_download_service import (
     YouTubeDownloadService,
 )
 
-from models.job_model import SummaryJob
+from app.models.job_model import SummaryJob
 
-from clients.video_client import VideoClient
-from clients.ocr_client import OCRClient
-from clients.vision_client import VisionClient
-from clients.whisper_client import WhisperClient
+from app.clients.video_client import VideoClient
+from app.clients.ocr_client import OCRClient
+from app.clients.vision_client import VisionClient
+from app.clients.whisper_client import WhisperClient
 
-from messaging.redis_queue import RedisQueue
+from app.messaging.redis_queue import RedisQueue
 
-from config import SUMMARY_QUEUE
+from app.config import SUMMARY_QUEUE
 
-from utils.logger import Logger
+from app.utils.logger import Logger
 
 logger = Logger.get_logger()
 

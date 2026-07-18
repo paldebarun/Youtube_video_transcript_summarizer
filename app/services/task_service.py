@@ -1,11 +1,11 @@
 from uuid import uuid4
 from datetime import datetime, UTC
 
-from messaging.redis_queue import RedisQueue
+from app.messaging.redis_queue import RedisQueue
 
-from repo.task_repository import TaskRepository
+from app.repo.task_repository import TaskRepository
 
-from models.task_document import (
+from app.models.task_document import (
     TaskDocument,
     TaskInput,
     ServiceResult,
@@ -13,9 +13,9 @@ from models.task_document import (
     ServiceType,
 )
 
-from workflow.workflow_state import WorkflowStage
+from app.workflow.workflow_state import WorkflowStage
 
-from config import MASTER_QUEUE
+from app.config import MASTER_QUEUE
 
 
 class TaskService:

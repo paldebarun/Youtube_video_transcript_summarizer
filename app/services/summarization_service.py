@@ -1,21 +1,21 @@
 import json
 import re
 
-from exceptions import GroqException
+from app.exceptions import GroqException
 
-from models.internal_models import (
+from app.models.internal_models import (
     VideoUnderstandingResult,
 )
 
-from models.request_models import (
+from app.models.request_models import (
     SummaryResponse,
 )
 
-from prompts import summarization_prompt
+from app.prompts import summarization_prompt
 
-from services.groq_services import GroqService
+from app.services.groq_services import GroqService
 
-from utils.logger import Logger
+from app.utils.logger import Logger
 
 logger = Logger.get_logger()
 

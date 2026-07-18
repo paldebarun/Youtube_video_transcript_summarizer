@@ -1,6 +1,8 @@
 import json
-from clients.redis_client import RedisClient
+from app.clients.redis_client import RedisClient
+from app.utils.logger import Logger
 
+logger=Logger.get_logger()
 
 class RedisQueue:
 
@@ -13,18 +15,28 @@ class RedisQueue:
         queue_name: str,
         message: dict,
     ):
+        logger.info(f"Pushing to '{queue_name}' queue with message: {message}")
 
-        self.client.rpush(
-            queue_name,
-            json.dumps(message),
-        )
+        try:
+            result = self.client.rpush(
+                queue_name,
+                json.dumps(message),
+            )
+
+            logger.info(
+                f"RPUSH returned {result} for queue '{queue_name}'"
+            )
+
+        except Exception as e:
+            logger.exception(f"Redis push failed: {e}")
+            raise
 
     def pop(
         self,
         queue_name: str,
-        timeout: int = 0,
+        timeout: int = 30,          
     ):
-
+        logger.info(f"Poping from :{queue_name}")
         result = self.client.blpop(
             queue_name,
             timeout=timeout,

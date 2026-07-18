@@ -1,16 +1,12 @@
 from fastapi import APIRouter, HTTPException
 
-from models.request_models import PromptRequest,YoutubeRequest
-from services.groq_services import GroqService
+from app.models.request_models import PromptRequest,YoutubeRequest
+from app.services.groq_services import GroqService
 # from services.summarization_service import SummarizationService
-from services.task_service import TaskService
+from app.services.task_service import TaskService
+from app.models.task_document import ServiceStatus
 
-from exceptions import (
-    GroqException,
-    InvalidYouTubeUrlException,
-    TranscriptNotFoundException,
-    VisionException
-)
+
 
 router = APIRouter()
 
@@ -19,7 +15,6 @@ router = APIRouter()
 groq_service = GroqService()
 # summarization_service = SummarizationService()
 task_service = TaskService()
-from models.task_document import ServiceStatus
 
 @router.get("/health")
 def health():
@@ -71,11 +66,11 @@ def health():
 @router.post("/summarize")
 def summarize(request: YoutubeRequest):
 
-    task = task_service.create_task(
+    task_id = task_service.create_task(
         str(request.youtube_url)
     )
 
     return {
-        "task_id": task.id,
+        "task_id": task_id,
         "status": "QUEUED",
     }

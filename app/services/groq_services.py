@@ -1,11 +1,11 @@
 from groq import Groq
 
-from config import (
+from app.config import (
     GROQ_API_KEY,
     GROQ_MODEL,
 )
-from exceptions import GroqException
-from utils.logger import Logger
+from app.exceptions import GroqException
+from app.utils.logger import Logger
 
 logger = Logger.get_logger()
 

@@ -1,10 +1,10 @@
 import sys
-from workers.master_worker import MasterWorker
-from workers.event_worker import EventWorker
-from workers.summary_worker import SummaryWorker
+from app.workers.master_worker import MasterWorker
+from app.workers.event_worker import EventWorker
+from app.workers.summary_worker import SummaryWorker
 
 
-from utils.logger import Logger
+from app.utils.logger import Logger
 
 logger = Logger.get_logger()
 
@@ -25,7 +25,10 @@ def main():
     worker_class = WORKERS.get(worker_name)
 
     if worker_class is None:
-        raise ValueError(f"Unknown worker '{worker_name}'")
+        raise ValueError(
+        f"Unknown worker '{worker_name}'. "
+        f"Available workers: {', '.join(WORKERS.keys())}"
+    )
 
     logger.info(f"Starting {worker_name} worker.")
 

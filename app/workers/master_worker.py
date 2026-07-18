@@ -1,31 +1,44 @@
-from messaging.redis_queue import RedisQueue
-from workflow.workflow_orchestrator import WorkflowOrchestrator
-from utils.logger import Logger
-from config import MASTER_QUEUE
+import redis
 
-logger=Logger.get_logger()
+from app.messaging.redis_queue import RedisQueue
+from app.workflow.workflow_orchestrator import WorkflowOrchestrator
+from app.utils.logger import Logger
+from app.config import MASTER_QUEUE
+
+logger = Logger.get_logger()
+
 
 class MasterWorker:
 
     def __init__(self):
-
         self.queue = RedisQueue()
         self.workflow = WorkflowOrchestrator()
 
     def start(self):
 
-        logger.debug("Master Worker Started...")
+        logger.info("Master Worker started.")
 
         while True:
 
-            message = self.queue.pop(MASTER_QUEUE)
-
-            if message is None:
-                logger.debug("No message received.")
+            try:
+                message = self.queue.pop(MASTER_QUEUE)
+            except redis.exceptions.TimeoutError:
                 continue
 
-            task_id = message["task_id"]
+            if message is None:
+                continue
 
-            logger.info(f"Received Task: {task_id}")
+            try:
+                logger.info(f"Message type: {type(message)}")
+                logger.info(f"Received message: {message}")
 
-            self.workflow.handle_task_created(task_id)
+                task_id = message["task_id"]
+
+                logger.info(f"Processing Task: {task_id}")
+
+                self.workflow.handle_task_created(task_id)
+
+                logger.info(f"Completed Task: {task_id}")
+
+            except Exception as e:
+                logger.exception(f"Master worker failed: {e}")

@@ -1,13 +1,15 @@
-from messaging.redis_queue import RedisQueue
+import redis
 
-from config import SUMMARY_QUEUE
+from app.messaging.redis_queue import RedisQueue
 
-from models.internal_models import VideoUnderstandingResult
-from models.task_document import ServiceType
-from services.task_service import TaskService
-from services.summarization_service import SummarizationService
+from app.config import SUMMARY_QUEUE
 
-from utils.logger import Logger
+from app.models.internal_models import VideoUnderstandingResult
+from app.models.task_document import ServiceType
+from app.services.task_service import TaskService
+from app.services.summarization_service import SummarizationService
+
+from app.utils.logger import Logger
 
 logger = Logger.get_logger()
 
@@ -30,17 +32,20 @@ class SummaryWorker:
 
         while True:
 
-            message = self.queue.pop(
-                SUMMARY_QUEUE,
-            )
+            try:
+                message = self.queue.pop(
+                    SUMMARY_QUEUE,
+                )
+            except redis.exceptions.TimeoutError:
+                continue
 
             if message is None:
 
                 continue
 
-            try:
+            task_id = message.get("task_id")
 
-                task_id = message["task_id"]
+            try:
 
                 logger.info(
                     f"Generating summary for task: {task_id}"

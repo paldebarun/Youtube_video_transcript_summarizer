@@ -6,7 +6,7 @@ import subprocess
 
 from pathlib import Path
 
-from utils.logger import Logger
+from app.utils.logger import Logger
 
 logger = Logger.get_logger()
 
@@ -37,18 +37,14 @@ class SupervisorManager:
 
         python_executable = sys.executable
 
-        worker_script = (
-            self.project_root
-            / "workers"
-            / "run_worker.py"
-        )
+        worker_module = "app.workers.run_worker"
 
         config = textwrap.dedent(f"""\
 [unix_http_server]
 file={self.socket_file}
 
 [supervisord]
-nodaemon=false
+nodaemon=true
 logfile={self.log_file}
 pidfile={self.pid_file}
 
@@ -64,8 +60,8 @@ serverurl=unix://{self.socket_file}
 
             config += textwrap.dedent(f"""\
 [program:{program_name}]
-command={python_executable} {worker_script} {worker_name}
-directory={self.project_root}
+command={python_executable} -m {worker_module} {worker_name}
+directory={self.project_root.parent}
 autostart=true
 autorestart=true
 startsecs=5

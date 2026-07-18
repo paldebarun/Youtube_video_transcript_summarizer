@@ -1,6 +1,6 @@
 import httpx
 
-from config import (
+from app.config import (
     COUCHDB_HOST,
     COUCHDB_PORT,
     COUCHDB_USERNAME,
@@ -8,7 +8,7 @@ from config import (
     COUCHDB_DATABASE,
 )
 
-from utils.logger import Logger
+from app.utils.logger import Logger
 
 logger = Logger.get_logger()
 

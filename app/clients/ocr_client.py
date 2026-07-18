@@ -1,8 +1,8 @@
-from config import OCR_SERVICE_URL
+from app.config import OCR_SERVICE_URL
 
-from models.job_model import OCRJob
+from app.models.job_model import OCRJob
 
-from .external_service_base_client import BaseClient
+from app.clients.external_service_base_client import BaseClient
 
 
 class OCRClient(BaseClient):

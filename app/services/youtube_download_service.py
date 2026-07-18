@@ -3,9 +3,9 @@ import uuid
 
 from yt_dlp import YoutubeDL
 
-from config import DOWNLOAD_DIR
-from exceptions import VideoDownloadException
-from utils.logger import Logger
+from app.config import DOWNLOAD_DIR
+from app.exceptions import VideoDownloadException
+from app.utils.logger import Logger
 
 logger = Logger.get_logger()
 

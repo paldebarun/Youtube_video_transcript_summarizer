@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, Field
-from workflow.workflow_state import WorkflowStage, ServiceStatus
+from app.workflow.workflow_state import WorkflowStage, ServiceStatus
 
 
 
