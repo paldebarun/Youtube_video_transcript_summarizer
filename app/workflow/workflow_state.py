@@ -1,0 +1,29 @@
+from enum import Enum
+
+
+class WorkflowStage(str, Enum):
+
+    TASK_CREATED = "TASK_CREATED"
+
+    VIDEO_PROCESSING = "VIDEO_PROCESSING"
+
+    PARALLEL_PROCESSING = "PARALLEL_PROCESSING"
+
+    SUMMARY_PROCESSING = "SUMMARY_PROCESSING"
+
+    COMPLETED = "COMPLETED"
+
+    FAILED = "FAILED"
+
+
+class ServiceStatus(str, Enum):
+
+    PENDING = "PENDING"
+
+    QUEUED = "QUEUED"
+
+    PROCESSING = "PROCESSING"
+
+    COMPLETED = "COMPLETED"
+
+    FAILED = "FAILED"

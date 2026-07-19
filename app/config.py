@@ -55,3 +55,69 @@ VISION_SERVICE_URL = os.getenv(
     "VISION_SERVICE_URL",
     "http://localhost:9000",
 )
+
+
+REDIS_HOST = os.getenv(
+    "REDIS_HOST",
+    "localhost",
+)
+
+REDIS_PORT = int(
+    os.getenv(
+        "REDIS_PORT",
+        6379,
+    )
+)
+
+REDIS_PASSWORD = os.getenv(
+    "REDIS_PASSWORD",
+)
+
+MASTER_QUEUE = os.getenv(
+    "MASTER_QUEUE",
+    "youtube_master_queue",
+)
+
+SUMMARY_QUEUE = os.getenv(
+    "SUMMARY_QUEUE",
+    "youtube_summary_queue",
+)
+
+EVENT_STREAM = os.getenv(
+    "EVENT_STREAM",
+    "workflow_events",
+)
+
+EVENT_CONSUMER_GROUP = os.getenv(
+    "EVENT_CONSUMER_GROUP",
+    "workflow_group",
+)
+
+EVENT_CONSUMER_NAME = os.getenv(
+    "EVENT_CONSUMER_NAME",
+    "workflow_consumer",
+)
+
+REDIS_DB = int(os.getenv("REDIS_DB", 0))
+
+
+COUCHDB_HOST = os.getenv("COUCHDB_HOST", "couchdb")
+
+COUCHDB_PORT = int(os.getenv("COUCHDB_PORT", 5984))
+
+COUCHDB_USERNAME = os.getenv("COUCHDB_USERNAME", "admin")
+
+COUCHDB_PASSWORD = os.getenv("COUCHDB_PASSWORD", "password")
+
+COUCHDB_DATABASE = os.getenv(
+    "COUCHDB_DATABASE",
+    "youtube_tasks",
+)
+
+GROQ_MODEL = os.getenv(
+    "GROQ_MODEL",
+    "llama-3.3-70b-versatile",
+)
+
+PORT=int(os.getenv("PORT"))
+

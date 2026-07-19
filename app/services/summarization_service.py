@@ -1,59 +1,79 @@
 import json
 import re
 
-from services.video_pipeline_service import VideoPipelineService
-from exceptions import GroqException
-from models.request_models import SummaryResponse
-from prompts import summarization_prompt
+from app.exceptions import GroqException
 
-from services.groq_services import GroqService
-# from services.ocr_service import OCRService
-# from services.transcript_service import TranscriptService
+from app.models.internal_models import (
+    VideoUnderstandingResult,
+)
+
+from app.models.request_models import (
+    SummaryResult,
+)
+
+from app.prompts import summarization_prompt
+
+from app.services.groq_services import GroqService
+
+from app.utils.logger import Logger
+
+logger = Logger.get_logger()
 
 
 class SummarizationService:
 
     def __init__(self):
-        # self.transcript_service = TranscriptService()
-        # self.ocr_service = OCRService()
+
         self.groq_service = GroqService()
-        self.video_pipeline_service = VideoPipelineService()
 
-    def summarize(self, youtube_url: str) -> SummaryResponse:
+    def summarize(
+        self,
+        video: VideoUnderstandingResult,
+    ) -> SummaryResult:
 
-        # transcript = self.transcript_service.get_transcript(youtube_url)
-        
-        video = self.video_pipeline_service.process(
-    youtube_url
-)
-        
+        prompt = summarization_prompt(
+            transcript=video.transcript,
+            metadata=video.metadata,
+            ocr=video.ocr,
+            vision=video.vision,
+        )
 
-
-        prompt = summarization_prompt(transcript=video.transcript,
-    ocr=video.ocr,
-    metadata=video.metadata,
-    vision=video.vision,
-)
-
-        response = self.groq_service.generate(prompt)
-
-        print("Raw LLM Response:\n", response)
+        response = self.groq_service.generate(
+            prompt,
+        )
 
         try:
 
-            match = re.search(r"\{.*\}", response, re.DOTALL)
+            match = re.search(
+                r"\{.*\}",
+                response,
+                re.DOTALL,
+            )
 
-            if not match:
-                raise ValueError("No JSON object found in LLM response.")
+            if match is None:
 
-            summary = json.loads(match.group())
+                raise ValueError(
+                    "No JSON object found."
+                )
 
-            return SummaryResponse(**summary)
+            summary = json.loads(
+                match.group(),
+            )
+
+            logger.info(
+                "Summary generated successfully."
+            )
+
+            return SummaryResult(
+                **summary,
+            )
 
         except Exception as e:
 
-            print("Failed to parse response:", e)
+            logger.error(
+                f"Failed parsing summary: {e}"
+            )
 
             raise GroqException(
-                "Failed to parse summary response."
+                "Failed to parse summary."
             ) from e

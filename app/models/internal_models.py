@@ -1,14 +1,16 @@
-
+from typing import Any
 
 from pydantic import BaseModel
+
 
 class VideoUnderstandingResult(BaseModel):
 
     transcript: str
 
-    metadata: dict
+    metadata: dict[str, Any]
 
-    scenes: list[dict]
+    scenes: list[dict[str, Any]]
 
-    ocr: dict
-    vision: dict
+    ocr: dict[str, Any]
+
+    vision: dict[str, Any]

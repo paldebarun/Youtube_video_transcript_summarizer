@@ -16,3 +16,7 @@ httpx
 python-multipart
 
 orjson
+
+redis
+supervisor
+colorama
