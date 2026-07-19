@@ -168,52 +168,10 @@ class WorkflowOrchestrator:
                 WorkflowStage.PARALLEL_PROCESSING,
             )
 
-            payload = event.payload
-
-            logger.info(
-                f"Submitting OCR, Vision and Whisper jobs for {event.task_id}"
-            )
-
-            self.task_service.mark_service_queued(
-                event.task_id,
-                ServiceType.OCR,
-            )
-
-            self.ocr_client.submit(
-                OCRJob(
-                    task_id=event.task_id,
-                    frames=payload["scenes"],
-                )
-            )
-
-            self.task_service.mark_service_queued(
-                event.task_id,
-                ServiceType.VISION,
-            )
-
-            self.vision_client.submit(
-                VisionJob(
-                    task_id=event.task_id,
-                    frames=payload["scenes"],
-                )
-            )
-
-            self.task_service.mark_service_queued(
-                event.task_id,
-                ServiceType.WHISPER,
-            )
-
-            self.whisper_client.submit(
-                WhisperJob(
-                    task_id=event.task_id,
-                    audio_path=payload["audio_path"],
-                )
-            )
-
         except Exception as e:
 
             logger.error(
-                f"Failed to submit downstream jobs for {event.task_id}: {e}"
+                f"Failed to record video completion for {event.task_id}: {e}"
             )
 
             self.task_service.mark_workflow_stage(
@@ -222,6 +180,65 @@ class WorkflowOrchestrator:
             )
 
             raise
+
+        payload = event.payload
+        scenes = payload["scenes"]
+
+        logger.info(
+            f"Submitting OCR, Vision and Whisper jobs for {event.task_id}"
+        )
+
+        jobs = [
+            (
+                ServiceType.OCR,
+                self.ocr_client.submit,
+                lambda: OCRJob(
+                    task_id=event.task_id,
+                    frames=scenes,
+                ),
+            ),
+            (
+                ServiceType.VISION,
+                self.vision_client.submit,
+                lambda: VisionJob(
+                    task_id=event.task_id,
+                    frames=scenes,
+                ),
+            ),
+            (
+                ServiceType.WHISPER,
+                self.whisper_client.submit,
+                lambda: WhisperJob(
+                    task_id=event.task_id,
+                    audio_path=payload["audio_path"],
+                ),
+            ),
+        ]
+
+        for service_type, submit_fn, build_job in jobs:
+
+            try:
+
+                job = build_job()
+
+                self.task_service.mark_service_queued(
+                    event.task_id,
+                    service_type,
+                )
+
+                submit_fn(job)
+
+            except Exception as e:
+
+                logger.error(
+                    f"Failed to submit {service_type.value} for {event.task_id}: {e}"
+                )
+
+                self.task_service.mark_service_failed(
+                    event.task_id,
+                    service_type,
+                    str(e),
+                )
 
 
     def _handle_parallel_completion(

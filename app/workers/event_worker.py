@@ -1,3 +1,5 @@
+import json
+
 from app.models.event_model import WorkflowEvent
 
 from app.messaging.redis_stream import RedisStream
@@ -51,6 +53,18 @@ class EventWorker:
                 for message_id, event_data in messages:
 
                     try:
+
+                        event_data = dict(event_data)
+
+                        payload = event_data.get("payload")
+
+                        if isinstance(payload, str) and payload:
+                            event_data["payload"] = json.loads(payload)
+
+                        error = event_data.get("error")
+
+                        if error == "None":
+                            event_data["error"] = None
 
                         event = WorkflowEvent(
                             **event_data,

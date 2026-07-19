@@ -1,6 +1,15 @@
 from pydantic import BaseModel
 
 
+class Frame(BaseModel):
+
+    start: float
+
+    end: float
+
+    frame_path: str
+
+
 class VideoJob(BaseModel):
 
     task_id: str
@@ -12,14 +21,14 @@ class OCRJob(BaseModel):
 
     task_id: str
 
-    frames: list[str]
+    frames: list[Frame]
 
 
 class VisionJob(BaseModel):
 
     task_id: str
 
-    frames: list[str]
+    frames: list[Frame]
 
 
 class WhisperJob(BaseModel):
