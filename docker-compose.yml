@@ -153,6 +153,7 @@ services:
 
     volumes:
       - whisper_cache:/root/.cache/huggingface
+      - shared_media:/shared:ro
 
     restart: unless-stopped
 

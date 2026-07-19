@@ -15,16 +15,7 @@ class YoutubeRequest(BaseModel):
     youtube_url: HttpUrl
 
 
-class SummaryResponse(BaseModel):
-
-    task_id: str
-
-    status: str
-
-    title: str | None = None
-
-    summary: str | None = None
-
-    key_points: list[str] = Field(
-        default_factory=list,
-    )
+class SummaryResult(BaseModel):
+    title: str
+    summary: str
+    key_points: list[str]

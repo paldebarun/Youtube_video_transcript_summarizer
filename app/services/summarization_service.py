@@ -8,7 +8,7 @@ from app.models.internal_models import (
 )
 
 from app.models.request_models import (
-    SummaryResponse,
+    SummaryResult,
 )
 
 from app.prompts import summarization_prompt
@@ -29,7 +29,7 @@ class SummarizationService:
     def summarize(
         self,
         video: VideoUnderstandingResult,
-    ) -> SummaryResponse:
+    ) -> SummaryResult:
 
         prompt = summarization_prompt(
             transcript=video.transcript,
@@ -64,7 +64,7 @@ class SummarizationService:
                 "Summary generated successfully."
             )
 
-            return SummaryResponse(
+            return SummaryResult(
                 **summary,
             )
 
