@@ -123,6 +123,8 @@ services:
       - "2000:2000"
 
     environment:
+
+      PORT: 2000
       
       PYTHONUNBUFFERED: "1"
 
@@ -255,7 +257,7 @@ services:
 
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
 
-      VISION_MODEL: google/gemma-4-31b-it:free
+      VISION_MODEL: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free
 
       MAX_IMAGES_PER_REQUEST: 5
 
