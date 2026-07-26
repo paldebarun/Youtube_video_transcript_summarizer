@@ -23,7 +23,9 @@ class ServiceResult(BaseModel):
 
 class TaskInput(BaseModel):
 
-    youtube_url: str
+    source: str
+
+    value: str
 
 
 class SummaryResult(BaseModel):

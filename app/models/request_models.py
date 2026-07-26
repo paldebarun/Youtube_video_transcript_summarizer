@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field, HttpUrl
+from typing import Literal
 
 
 class PromptRequest(BaseModel):
@@ -10,9 +11,12 @@ class PromptRequest(BaseModel):
     )
 
 
-class YoutubeRequest(BaseModel):
+class VideoRequest(BaseModel):
 
-    youtube_url: HttpUrl
+    source:Literal["youtube", "local"]
+
+
+    value: str
 
 
 class SummaryResult(BaseModel):

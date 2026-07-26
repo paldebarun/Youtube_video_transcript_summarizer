@@ -11,8 +11,8 @@ from app.models.task_document import ServiceType
 from app.workflow.workflow_state import WorkflowStage
 
 from app.services.task_service import TaskService
-from app.services.youtube_download_service import (
-    YouTubeDownloadService,
+from app.services.video_input_service import (
+    VideoInputService,
 )
 
 from app.models.job_model import SummaryJob
@@ -37,7 +37,7 @@ class WorkflowOrchestrator:
 
         self.task_service = TaskService()
 
-        self.downloader = YouTubeDownloadService()
+        self.video_input_service = VideoInputService()
 
         self.video_client = VideoClient()
         self.ocr_client = OCRClient()
@@ -61,8 +61,9 @@ class WorkflowOrchestrator:
                 f"Downloading video for task: {task_id}"
             )
 
-            video_path = self.downloader.download(
-                task.input.youtube_url,
+            video_path = self.video_input_service.resolve_video(
+                task.input.source,
+                task.input.value,
             )
 
             self.task_service.mark_service_queued(

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException
 
-from app.models.request_models import PromptRequest,YoutubeRequest
+from app.models.request_models import VideoRequest
 from app.services.groq_services import GroqService
-# from services.summarization_service import SummarizationService
+
 from app.services.task_service import TaskService
-from app.models.task_document import ServiceStatus
+
 
 
 
@@ -13,64 +13,51 @@ router = APIRouter()
 
 
 groq_service = GroqService()
-# summarization_service = SummarizationService()
+
 task_service = TaskService()
 
 @router.get("/health")
 def health():
     return {
         "status": "healthy",
-        "service": "YouTube AI Summarizer Backend"
+        "service": "Video summarizer Service"
     }
 
 
 
-# @router.post("/summarize")
-# def summarize(request: YoutubeRequest):
 
-#     try:
-#         return summarization_service.summarize(
-#         str(request.youtube_url)
-# )
-
-#     except InvalidYouTubeUrlException as e:
-#         raise HTTPException(
-#             status_code=400,
-#             detail=str(e)
-#         )
-
-#     except TranscriptNotFoundException as e:
-#         raise HTTPException(
-#             status_code=404,
-#             detail=str(e)
-#         )
-    
-#     except VisionException as e:
-#         raise HTTPException(
-#             status_code=502,
-#             detail=str(e),
-#         )
-
-#     except GroqException as e:
-#         raise HTTPException(
-#             status_code=502,
-#             detail=str(e)
-#         )
-
-#     except Exception:
-#         raise HTTPException(
-#             status_code=500,
-#             detail="Internal Server Error"
-#         )
 
 @router.post("/summarize")
-def summarize(request: YoutubeRequest):
+def summarize(request: VideoRequest):
 
     task_id = task_service.create_task(
-        str(request.youtube_url)
-    )
+    request.source,
+    request.value,
+)
 
     return {
         "task_id": task_id,
         "status": "QUEUED",
     }
+
+
+
+@router.get("/tasks/{task_id}")
+def get_task(
+    task_id: str,
+):
+    try:
+
+        task = task_service.get_task(
+            task_id,
+        )
+
+        return task
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )
+

@@ -28,7 +28,8 @@ class TaskService:
 
     def create_task(
         self,
-        youtube_url: str,
+        source: str,
+        value:str
     ) -> str:
 
         task_id = str(uuid4())
@@ -39,8 +40,9 @@ class TaskService:
             workflow_stage=WorkflowStage.TASK_CREATED,
             created_at=datetime.now(UTC),
             input=TaskInput(
-                youtube_url=youtube_url,
-            ),
+                source=source,
+                value=value,
+            )
         )
 
         self.repository.create_task(task)

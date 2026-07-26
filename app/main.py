@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
     try:
 
         logger.info(
-            "Starting YouTube AI Summarizer..."
+            "Starting Video summarizer..."
         )
 
         supervisor.generate_config()
@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
     finally:
 
         logger.info(
-            "Stopping YouTube AI Summarizer..."
+            "Stopping Video summarizer..."
         )
 
         supervisor.stop()
@@ -49,7 +49,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="YouTube AI Summarizer",
+    title="Video summarizer Service",
     version="1.0.0",
     lifespan=lifespan,
 )
